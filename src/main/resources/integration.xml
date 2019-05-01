@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:int="http://www.springframework.org/schema/integration"
+       xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int-http="http://www.springframework.org/schema/integration/http"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+
+    <int:channel id="stdinCh"/>
+    <int:channel id="splitReqCh"/>
+    <int:channel id="bridgeCh">
+        <int:queue/>
+    </int:channel>
+    <int:channel id="headerEnricherCh"/>
+    <int:channel id="sendCh"/>
+    <int:channel id="replyCh">
+        <int:queue capacity="10"/>
+    </int:channel>
+    <int:channel id="routeCh"/>
+    <int:channel id="resequencerCh"/>
+    <int:channel id="splitResCh"/>
+    <int:channel id="outCh"/>
+
+    <bean id="messageMoker" class="com.example.springintegration.MessageMocker"/>
+    <bean id="messageProcessor" class="com.example.springintegration.MessageProcessor"/>
+
+    <task:executor id="taskExecutor" pool-size="10"/>
+
+    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
+
+    <int-stream:stdin-channel-adapter id="stdin" channel="stdinCh"/>
+
+    <int:service-activator id="mockMessage" input-channel="stdinCh"
+                           ref="messageMoker" output-channel="splitReqCh"/>
+
+    <int:gateway id="siGateway"
+                 default-request-channel="splitReqCh"
+                 service-interface="com.example.springintegration.SiGateway"/>
+
+    <int:splitter id="splitRequest" input-channel="splitReqCh" output-channel="bridgeCh"/>
+
+    <int:bridge id="bridge" input-channel="bridgeCh" output-channel="headerEnricherCh">
+        <int:poller fixed-delay="200" task-executor="taskExecutor"/>
+    </int:bridge>
+
+    <int:enricher id="enrichHeader" input-channel="headerEnricherCh" output-channel="sendCh">
+        <int:header name="msg" expression="payload"/>
+    </int:enricher>
+
+    <int-http:outbound-gateway id="getHttp"
+                               request-channel="sendCh"
+                               url="http://localhost:8080"
+                               http-method="GET"
+                               reply-channel="replyCh"
+                               expected-response-type="java.lang.String" />
+
+    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor" output-channel="routeCh"/>
+
+    <int:router input-channel="routeCh" expression="headers.route" default-output-channel="resequencerCh">
+        <int:mapping value="discard" channel="nullChannel"/>
+        <int:mapping value="default" channel="resequencerCh" />
+    </int:router>
+
+    <int:resequencer input-channel="resequencerCh" output-channel="splitResCh" release-partial-sequences="false"/>
+
+    <int:splitter id="splitResponse" input-channel="splitResCh" output-channel="outCh"/>
+
+    <int-stream:stdout-channel-adapter id="stdout" channel="outCh" append-newline="true"/>
+
+
+</beans>
