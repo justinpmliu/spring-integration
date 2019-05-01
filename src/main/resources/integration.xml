@@ -23,7 +23,7 @@
     <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
 
-    <bean id="messageMoker" class="com.example.springintegration.MessageMocker"/>
+    <bean id="messageMock" class="com.example.springintegration.MessageMock"/>
     <bean id="messageProcessor" class="com.example.springintegration.MessageProcessor"/>
 
     <task:executor id="taskExecutor" pool-size="10"/>
@@ -33,7 +33,7 @@
     <int-stream:stdin-channel-adapter id="stdin" channel="stdinCh"/>
 
     <int:service-activator id="mockMessage" input-channel="stdinCh"
-                           ref="messageMoker" output-channel="splitReqCh"/>
+                           ref="messageMock" output-channel="splitReqCh"/>
 
     <int:gateway id="siGateway"
                  default-request-channel="splitReqCh"
@@ -51,7 +51,7 @@
 
     <int-http:outbound-gateway id="getHttp"
                                request-channel="sendCh"
-                               url="http://localhost:8080"
+                               url="http://localhost:8080/api/hello"
                                http-method="GET"
                                reply-channel="replyCh"
                                expected-response-type="java.lang.String" />
