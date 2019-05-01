@@ -1,16 +1,17 @@
-package com.example.springintegration;
+package com.example.springintegration.mock;
 
+import com.example.springintegration.integration.SiGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 
 @Component
-public class ServiceClient {
+public class SiClient {
     @Autowired
     private SiGateway siGateway;
 
-    public void call() {
+    public void invokeSiGateway() {
         siGateway.process(Arrays.asList("msg1", "msg2", "msg3"));
     }
 }

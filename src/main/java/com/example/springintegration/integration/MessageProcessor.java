@@ -1,4 +1,4 @@
-package com.example.springintegration;
+package com.example.springintegration.integration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
@@ -14,14 +14,17 @@ public class MessageProcessor {
     @Autowired
     private MessageChannel bridgeCh;
 
-    private final static String HEADER_PAYLOADS = "payloads";
+    private static final String HEADER_PAYLOADS = "payloads";
+    private static final String HEADER_FILTER = "filter";
+    private static final String HEADER_FILTER_DEFAULT = "default";
+    private static final String HEADER_FILTER_DISCARD = "discard";
 
     public Message process(Message<String> message) {
         MessageHeaders headers = message.getHeaders();
         String msgInHeader = (String)headers.get("msg");
 
-        MessageBuilder builder = null;
-        List<String> payloads = null;
+        MessageBuilder builder;
+        List<String> payloads;
 
         switch(msgInHeader) {
             case "msg1":
@@ -34,7 +37,7 @@ public class MessageProcessor {
                 bridgeCh.send(builder.build());
 
                 builder = MessageBuilder.withPayload("");
-                builder.setHeader("filter", "discard");
+                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DISCARD);
                 break;
 
             case "msg1.1":
@@ -42,12 +45,12 @@ public class MessageProcessor {
                 payloads.add("msg1.1-response");
 
                 builder = MessageBuilder.withPayload(payloads);
-                builder.setHeader("filter", "default");
+                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DEFAULT);
                 break;
 
             default:
                 builder = MessageBuilder.withPayload(msgInHeader + "-response");
-                builder.setHeader("filter", "default");
+                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DEFAULT);
                 break;
         }
 

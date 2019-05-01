@@ -23,8 +23,8 @@
     <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
 
-    <bean id="messageMock" class="com.example.springintegration.MessageMock"/>
-    <bean id="messageProcessor" class="com.example.springintegration.MessageProcessor"/>
+    <bean id="messageGenerator" class="com.example.springintegration.mock.MessageGenerator"/>
+    <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor"/>
 
     <task:executor id="taskExecutor" pool-size="10"/>
 
@@ -32,12 +32,12 @@
 
     <int-stream:stdin-channel-adapter id="stdin" channel="stdinCh"/>
 
-    <int:service-activator id="mockMessage" input-channel="stdinCh"
-                           ref="messageMock" output-channel="splitReqCh"/>
+    <int:service-activator id="generateMessage" input-channel="stdinCh"
+                           ref="messageGenerator" output-channel="splitReqCh"/>
 
     <int:gateway id="siGateway"
                  default-request-channel="splitReqCh"
-                 service-interface="com.example.springintegration.SiGateway"/>
+                 service-interface="com.example.springintegration.integration.SiGateway"/>
 
     <int:splitter id="splitRequest" input-channel="splitReqCh" output-channel="bridgeCh"/>
 
@@ -60,7 +60,7 @@
 
     <int:filter input-channel="filterCh" output-channel="resequencerCh" expression="!headers.filter.equals('discard')" />
 
-    <int:resequencer input-channel="resequencerCh" output-channel="splitResCh" release-partial-sequences="false"/>
+    <int:resequencer input-channel="resequencerCh" output-channel="splitResCh" release-partial-sequences="true"/>
 
     <int:splitter id="splitResponse" input-channel="splitResCh" output-channel="outCh"/>
 

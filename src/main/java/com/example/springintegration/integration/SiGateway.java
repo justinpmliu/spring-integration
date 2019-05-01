@@ -1,4 +1,4 @@
-package com.example.springintegration;
+package com.example.springintegration.integration;
 
 import java.util.List;
 
