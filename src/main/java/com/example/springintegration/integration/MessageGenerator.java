@@ -1,4 +1,4 @@
-package com.example.springintegration.mock;
+package com.example.springintegration.integration;
 
 import java.util.Arrays;
 import java.util.List;

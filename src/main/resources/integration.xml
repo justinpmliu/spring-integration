@@ -23,7 +23,7 @@
     <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
 
-    <bean id="messageGenerator" class="com.example.springintegration.mock.MessageGenerator"/>
+    <bean id="messageGenerator" class="com.example.springintegration.integration.MessageGenerator"/>
     <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor"/>
 
     <task:executor id="taskExecutor" pool-size="10"/>

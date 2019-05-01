@@ -1,6 +1,6 @@
 package com.example.springintegration;
 
-import com.example.springintegration.mock.SiClient;
+import com.example.springintegration.integration.SiClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;

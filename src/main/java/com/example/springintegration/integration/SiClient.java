@@ -1,6 +1,5 @@
-package com.example.springintegration.mock;
+package com.example.springintegration.integration;
 
-import com.example.springintegration.integration.SiGateway;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
