@@ -34,7 +34,7 @@ public class MessageProcessor {
                 bridgeCh.send(builder.build());
 
                 builder = MessageBuilder.withPayload("");
-                builder.setHeader("route", "discard");
+                builder.setHeader("filter", "discard");
                 break;
 
             case "msg1.1":
@@ -42,12 +42,12 @@ public class MessageProcessor {
                 payloads.add("msg1.1-response");
 
                 builder = MessageBuilder.withPayload(payloads);
-                builder.setHeader("route", "default");
+                builder.setHeader("filter", "default");
                 break;
 
             default:
                 builder = MessageBuilder.withPayload(msgInHeader + "-response");
-                builder.setHeader("route", "default");
+                builder.setHeader("filter", "default");
                 break;
         }
 

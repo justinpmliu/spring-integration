@@ -18,7 +18,7 @@
     <int:channel id="replyCh">
         <int:queue capacity="10"/>
     </int:channel>
-    <int:channel id="routeCh"/>
+    <int:channel id="filterCh"/>
     <int:channel id="resequencerCh"/>
     <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
@@ -56,12 +56,9 @@
                                reply-channel="replyCh"
                                expected-response-type="java.lang.String" />
 
-    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor" output-channel="routeCh"/>
+    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor" output-channel="filterCh"/>
 
-    <int:router input-channel="routeCh" expression="headers.route" default-output-channel="resequencerCh">
-        <int:mapping value="discard" channel="nullChannel"/>
-        <int:mapping value="default" channel="resequencerCh" />
-    </int:router>
+    <int:filter input-channel="filterCh" output-channel="resequencerCh" expression="!headers.filter.equals('discard')" />
 
     <int:resequencer input-channel="resequencerCh" output-channel="splitResCh" release-partial-sequences="false"/>
 
