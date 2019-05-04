@@ -8,7 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.ImportResource;
 
 @SpringBootApplication
-@ImportResource("integration.xml")
+@ImportResource("classpath:integration-context.xml")
 public class SpringIntegrationApplication implements CommandLineRunner {
 
 	@Autowired
