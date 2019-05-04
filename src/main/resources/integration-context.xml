@@ -4,9 +4,8 @@
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
        xmlns:task="http://www.springframework.org/schema/task"
-       xmlns:int-http="http://www.springframework.org/schema/integration/http"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
+            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
     <int:channel id="stdinCh"/>
     <int:channel id="splitReqCh"/>
@@ -49,22 +48,14 @@
         <int:header name="msg" expression="payload"/>
     </int:enricher>
 
-    <int-http:outbound-gateway id="getHttp"
-                               request-channel="sendCh"
-                               url="http://localhost:8080/api/hello"
-                               http-method="GET"
-                               reply-channel="replyCh"
-                               expected-response-type="java.lang.String" />
+    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor"
+                           output-channel="filterCh"/>
 
-    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor" output-channel="filterCh"/>
-
-    <int:filter input-channel="filterCh" output-channel="resequencerCh" expression="!headers.filter.equals('discard')" />
+    <int:filter input-channel="filterCh" output-channel="resequencerCh" expression="!headers.filter.equals('discard')"/>
 
     <int:resequencer input-channel="resequencerCh" output-channel="splitResCh" release-partial-sequences="true"/>
 
     <int:splitter id="splitResponse" input-channel="splitResCh" output-channel="outCh"/>
-
-    <int-stream:stdout-channel-adapter id="stdout" channel="outCh" append-newline="true"/>
 
 
 </beans>
