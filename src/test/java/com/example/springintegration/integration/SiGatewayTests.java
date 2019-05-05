@@ -27,12 +27,11 @@ public class SiGatewayTests {
 
     @Test
     public void testProcess() {
-        siGateway.process(Arrays.asList("msg1", "msg2", "msg3"));
+        siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
 
-        assertEquals("msg1-response", getPayload());
-        assertEquals("msg1.1-response", getPayload());
-        assertEquals("msg2-response", getPayload());
-        assertEquals("msg3-response", getPayload());
+        assertEquals("type-1-data", getPayload());
+        assertEquals("type-1.more-data", getPayload());
+        assertEquals("type-3-data", getPayload());
 
         assertNull(testChannel.receive(0));
     }

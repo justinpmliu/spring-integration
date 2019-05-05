@@ -13,6 +13,6 @@ public class SiClient {
 
     @Scheduled(cron = "0 0/1 * * * ?")
     public void invokeSiGateway() {
-        siGateway.process(Arrays.asList("msg1", "msg2", "msg3"));
+        siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
     }
 }

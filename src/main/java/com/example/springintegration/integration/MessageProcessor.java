@@ -1,5 +1,6 @@
 package com.example.springintegration.integration;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
+import java.io.IOException;
 import java.util.*;
 
 public class MessageProcessor {
@@ -16,54 +18,54 @@ public class MessageProcessor {
     private MessageChannel bridgeCh;
 
     private static final String HEADER_PAYLOADS = "tmpPayloads";
-    private static final String HEADER_FILTER = "filter";
-    private static final String HEADER_FILTER_DEFAULT = "default";
     private static final String HEADER_FILTER_DISCARD = "discard";
+    private static final String HEADER_FILTER_EMPTY = "empty";
 
     private static final List<String> RESEQUENCER_HEADERS = Arrays.asList(
             "correlationId", "sequenceSize", "sequenceNumber"
     );
 
-    Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
+    private Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
 
-    public Message process(Message<String> message) {
+    private ObjectMapper mapper = new ObjectMapper();
+
+    public Message process(Message<String> message) throws IOException {
         MessageHeaders headers = message.getHeaders();
-        String msgInHeader = (String)headers.get("msg");
+        Map<String, String> payload = mapper.readValue(message.getPayload(), HashMap.class);
+
+        String type = (String)headers.get("type");
+        String data = payload.get("data");
+        String hasMore = payload.get("hasMore");
 
         MessageBuilder builder;
-        List<String> tmpPayloads;
 
-        switch(msgInHeader) {
-            case "msg1":
-                tmpPayloads = new ArrayList<>();
-                tmpPayloads.add("msg1-response");
+        if (hasMore.equals("true")) {
+            builder = MessageBuilder.withPayload(type + ".more");
+            copyHeaders(builder, headers);
+            saveDataToHeader(data, headers, builder);
 
-                builder = MessageBuilder.withPayload("msg1.1");
+            bridgeCh.send(builder.build());
 
-                this.copyHeaders(builder, headers);
-                builder.setHeader(HEADER_PAYLOADS, tmpPayloads);
+            builder = MessageBuilder.withPayload("");
+            builder.setHeader(HEADER_FILTER_DISCARD, "true");
 
-                bridgeCh.send(builder.build());
-
+        } else {
+            if (data.isEmpty()) {
                 builder = MessageBuilder.withPayload("");
-                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DISCARD);
-                break;
+                builder.setHeader(HEADER_FILTER_EMPTY, "true");
+            } else {
+                List<String> tmpData = (List)headers.get(HEADER_PAYLOADS);
+                if (tmpData != null) {
+                    tmpData.add(data);
+                    builder = MessageBuilder.withPayload(tmpData);
+                } else {
+                    builder = MessageBuilder.withPayload(data);
+                }
+                builder.setHeader(HEADER_FILTER_EMPTY, "false");
+            }
 
-            case "msg1.1":
-                tmpPayloads = (List)headers.get(HEADER_PAYLOADS);
-                tmpPayloads.add("msg1.1-response");
-
-                builder = MessageBuilder.withPayload(tmpPayloads);
-                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DEFAULT);
-                break;
-
-            default:
-                builder = MessageBuilder.withPayload(msgInHeader + "-response");
-                builder.setHeader(HEADER_FILTER, HEADER_FILTER_DEFAULT);
-                break;
+            builder.setHeader(HEADER_FILTER_DISCARD, "false");
         }
-
-        logger.debug(msgInHeader);
 
         return builder.build();
     }
@@ -74,5 +76,14 @@ public class MessageProcessor {
             headersToCopy.put(headerName, headers.get(headerName));
         }
         builder.copyHeaders(headersToCopy);
+    }
+
+    private void saveDataToHeader(String data, MessageHeaders headers, MessageBuilder builder) {
+        List<String> tmpData = (List)headers.get(HEADER_PAYLOADS);
+        if (tmpData == null) {
+            tmpData = new ArrayList<>();
+        }
+        tmpData.add(data);
+        builder.setHeader(HEADER_PAYLOADS, tmpData);
     }
 }
