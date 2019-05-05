@@ -9,7 +9,7 @@
                                request-channel="sendCh"
                                url="http://localhost:8080/api/hello"
                                http-method="GET"
-                               reply-channel="replyCh"
+                               reply-channel="receiveCh"
                                expected-response-type="java.lang.String" />
 
     <int-stream:stdout-channel-adapter id="stdout" channel="outCh" append-newline="true"/>

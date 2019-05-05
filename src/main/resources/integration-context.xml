@@ -2,19 +2,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:int="http://www.springframework.org/schema/integration"
-       xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
        xmlns:task="http://www.springframework.org/schema/task"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
 
-    <int:channel id="stdinCh"/>
     <int:channel id="splitReqCh"/>
     <int:channel id="bridgeCh">
         <int:queue/>
     </int:channel>
     <int:channel id="headerEnricherCh"/>
     <int:channel id="sendCh"/>
-    <int:channel id="replyCh">
+    <int:channel id="receiveCh">
         <int:queue capacity="10"/>
     </int:channel>
     <int:channel id="filterCh"/>
@@ -22,17 +20,11 @@
     <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
 
-    <bean id="messageGenerator" class="com.example.springintegration.integration.MessageGenerator"/>
     <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor"/>
 
-    <task:executor id="taskExecutor" pool-size="10"/>
+    <task:executor id="taskExecutor" pool-size="10" queue-capacity="10"/>
 
     <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
-
-    <int-stream:stdin-channel-adapter id="stdin" channel="stdinCh"/>
-
-    <int:service-activator id="generateMessage" input-channel="stdinCh"
-                           ref="messageGenerator" output-channel="splitReqCh"/>
 
     <int:gateway id="siGateway"
                  default-request-channel="splitReqCh"
@@ -48,8 +40,7 @@
         <int:header name="msg" expression="payload"/>
     </int:enricher>
 
-    <int:service-activator id="processMessage" input-channel="replyCh" ref="messageProcessor"
-                           output-channel="filterCh"/>
+    <int:service-activator id="processMessage" input-channel="receiveCh" output-channel="filterCh" ref="messageProcessor"/>
 
     <int:filter input-channel="filterCh" output-channel="resequencerCh" expression="!headers.filter.equals('discard')"/>
 
