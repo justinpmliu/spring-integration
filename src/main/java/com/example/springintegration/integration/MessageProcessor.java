@@ -18,8 +18,8 @@ public class MessageProcessor {
     private MessageChannel bridgeCh;
 
     private static final String HEADER_PAYLOADS = "tmpPayloads";
-    private static final String HEADER_FILTER_DISCARD = "discard";
-    private static final String HEADER_FILTER_EMPTY = "empty";
+    private static final String HEADER_DISCARD = "discard";
+    private static final String HEADER_EMPTY = "empty";
 
     private static final List<String> RESEQUENCER_HEADERS = Arrays.asList(
             "correlationId", "sequenceSize", "sequenceNumber"
@@ -29,13 +29,15 @@ public class MessageProcessor {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    public Message process(Message<String> message) throws IOException {
+    public Message<List<String>> process(Message<String> message) throws IOException {
         MessageHeaders headers = message.getHeaders();
         Map<String, String> payload = mapper.readValue(message.getPayload(), HashMap.class);
 
         String type = (String)headers.get("type");
         String data = payload.get("data");
         String hasMore = payload.get("hasMore");
+
+        logger.info("type: " + type);
 
         MessageBuilder builder;
 
@@ -46,25 +48,25 @@ public class MessageProcessor {
 
             bridgeCh.send(builder.build());
 
-            builder = MessageBuilder.withPayload("");
-            builder.setHeader(HEADER_FILTER_DISCARD, "true");
+            builder = MessageBuilder.withPayload(Collections.emptyList());
+            builder.setHeader(HEADER_DISCARD, "true");
 
         } else {
             if (data.isEmpty()) {
-                builder = MessageBuilder.withPayload("");
-                builder.setHeader(HEADER_FILTER_EMPTY, "true");
+                builder = MessageBuilder.withPayload(Collections.emptyList());
+                builder.setHeader(HEADER_EMPTY, "true");
             } else {
                 List<String> tmpData = (List)headers.get(HEADER_PAYLOADS);
                 if (tmpData != null) {
                     tmpData.add(data);
                     builder = MessageBuilder.withPayload(tmpData);
                 } else {
-                    builder = MessageBuilder.withPayload(data);
+                    builder = MessageBuilder.withPayload(Collections.singletonList(data));
                 }
-                builder.setHeader(HEADER_FILTER_EMPTY, "false");
+                builder.setHeader(HEADER_EMPTY, "false");
             }
 
-            builder.setHeader(HEADER_FILTER_DISCARD, "false");
+            builder.setHeader(HEADER_DISCARD, "false");
         }
 
         return builder.build();

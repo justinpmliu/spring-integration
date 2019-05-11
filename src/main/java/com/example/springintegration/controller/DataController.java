@@ -16,11 +16,8 @@ public class DataController {
     private DataService dataService;
 
     @GetMapping("/data")
-    public String getData(@RequestParam(value = "type") String type) {
-        try {
-            return dataService.getData(type);
-        } catch (JsonProcessingException e) {
-            return e.getMessage();
-        }
+    public String getData(@RequestParam(value = "type") String type)
+            throws JsonProcessingException, InterruptedException {
+        return dataService.getData(type);
     }
 }

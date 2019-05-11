@@ -11,7 +11,7 @@ public class SiClient {
     @Autowired
     private SiGateway siGateway;
 
-    @Scheduled(cron = "0 0/1 * * * ?")
+    @Scheduled(cron = "0 0/3 * * * ?")
     public void invokeSiGateway() {
         siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
     }

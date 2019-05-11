@@ -12,29 +12,42 @@ public class DataService {
 
     private ObjectMapper mapper = new ObjectMapper();
 
-    public String getData(String type) throws JsonProcessingException {
+    private static final String HAS_MORE = "hasMore";
+    private static final String DATA = "data";
+    private static final String SUFFIX = "-data";
+
+    public String getData(String type) throws JsonProcessingException, InterruptedException {
 
         Map<String, String> result = new HashMap<>();
 
         switch (type) {
             case "type-1":
-                result.put("hasMore", "true");
-                result.put("data", type + "-data");
-                break;
-            case "type-1.more":
-                result.put("hasMore", "false");
-                result.put("data", type + "-data");
+            case "type-2.more":
+                result.put(HAS_MORE, "false");
+                result.put(DATA, type + SUFFIX);
+
+                sleep(1);
+
                 break;
             case "type-2":
-                result.put("hasMore", "false");
-                result.put("data", "");
+                result.put(HAS_MORE, "true");
+                result.put(DATA, type + SUFFIX);
+
+                sleep(2);
+
                 break;
+
             default:
-                result.put("hasMore", "false");
-                result.put("data", type + "-data");
+                result.put(HAS_MORE, "false");
+                result.put(DATA, type + SUFFIX);
+
                 break;
         }
 
         return mapper.writeValueAsString(result);
+    }
+
+    private void sleep(long second) throws InterruptedException {
+        Thread.sleep(second * 1000);
     }
 }
