@@ -1,5 +1,7 @@
 package com.example.springintegration.integration;
 
+import com.example.springintegration.common.Constants;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,82 +12,74 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
 public class MessageProcessor {
+
+    private static final List<String> EMPTY_LIST = Collections.emptyList();
+
+    private final Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
+    private final TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String, String>>() {};
 
     @Autowired
     private MessageChannel bridgeCh;
 
-    private static final String HEADER_PAYLOADS = "tmpPayloads";
-    private static final String HEADER_DISCARD = "discard";
-    private static final String HEADER_EMPTY = "empty";
+    private final ObjectMapper objectMapper;
 
-    private static final List<String> RESEQUENCER_HEADERS = Arrays.asList(
-            "correlationId", "sequenceSize", "sequenceNumber"
-    );
-
-    private Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
-
-    private ObjectMapper mapper = new ObjectMapper();
+    public MessageProcessor(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
 
     public Message<List<String>> process(Message<String> message) throws IOException {
         MessageHeaders headers = message.getHeaders();
-        Map<String, String> payload = mapper.readValue(message.getPayload(), HashMap.class);
 
-        String type = (String)headers.get("type");
-        String data = payload.get("data");
-        String hasMore = payload.get("hasMore");
+        Map<String, String> payload = objectMapper.readValue(message.getPayload(), typeRef);
 
-        logger.info("type: " + type);
+        String type = (String) headers.get(Constants.HEADER_TYPE);
+        String data = payload.get(Constants.DATA);
+        String hasMore = payload.get(Constants.HEADER_HAS_MORE);
 
-        MessageBuilder builder;
+        if (logger.isInfoEnabled()) {
+            logger.info(String.format("type: %s", type));
+        }
+
+        MessageBuilder<String> builder1;
+        MessageBuilder<List<String>> builder2;
 
         if (hasMore.equals("true")) {
-            builder = MessageBuilder.withPayload(type + ".more");
-            copyHeaders(builder, headers);
-            saveDataToHeader(data, headers, builder);
+            builder1 = MessageBuilder.withPayload(type + Constants.MORE);
+            builder1.copyHeaders(headers);
+            builder1.setHeader(Constants.HEADER_TMP_PAYLOAD, this.appendTmpData(data, Constants.HEADER_TMP_PAYLOAD, headers));
 
-            bridgeCh.send(builder.build());
+            bridgeCh.send(builder1.build());
 
-            builder = MessageBuilder.withPayload(Collections.emptyList());
-            builder.setHeader(HEADER_DISCARD, "true");
+            builder2 = MessageBuilder.withPayload(EMPTY_LIST);
+            builder2.setHeader(Constants.HEADER_HAS_MORE, "true");
 
         } else {
             if (data.isEmpty()) {
-                builder = MessageBuilder.withPayload(Collections.emptyList());
-                builder.setHeader(HEADER_EMPTY, "true");
+                builder2 = MessageBuilder.withPayload(EMPTY_LIST);
+                builder2.setHeader(Constants.HEADER_IS_EMPTY, "true");
             } else {
-                List<String> tmpData = (List)headers.get(HEADER_PAYLOADS);
-                if (tmpData != null) {
-                    tmpData.add(data);
-                    builder = MessageBuilder.withPayload(tmpData);
-                } else {
-                    builder = MessageBuilder.withPayload(Collections.singletonList(data));
-                }
-                builder.setHeader(HEADER_EMPTY, "false");
+                builder2 = MessageBuilder.withPayload(this.appendTmpData(data, Constants.HEADER_TMP_PAYLOAD, headers));
+                builder2.setHeader(Constants.HEADER_IS_EMPTY, "false");
             }
 
-            builder.setHeader(HEADER_DISCARD, "false");
+            builder2.setHeader(Constants.HEADER_HAS_MORE, "false");
         }
 
-        return builder.build();
+        return builder2.build();
     }
 
-    private void copyHeaders(MessageBuilder builder, MessageHeaders headers) {
-        Map<String, Object> headersToCopy = new HashMap<>();
-        for (String headerName : RESEQUENCER_HEADERS) {
-            headersToCopy.put(headerName, headers.get(headerName));
-        }
-        builder.copyHeaders(headersToCopy);
-    }
-
-    private void saveDataToHeader(String data, MessageHeaders headers, MessageBuilder builder) {
-        List<String> tmpData = (List)headers.get(HEADER_PAYLOADS);
+    private List<String> appendTmpData(String data, String headerName, MessageHeaders headers) {
+        @SuppressWarnings("unchecked") List<String> tmpData = headers.get(headerName, List.class);
         if (tmpData == null) {
             tmpData = new ArrayList<>();
         }
         tmpData.add(data);
-        builder.setHeader(HEADER_PAYLOADS, tmpData);
+        return tmpData;
     }
 }

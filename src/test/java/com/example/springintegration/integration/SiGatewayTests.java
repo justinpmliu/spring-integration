@@ -30,7 +30,8 @@ public class SiGatewayTests {
         siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
 
         assertEquals("type-1-data", getPayload());
-        assertEquals("type-1.more-data", getPayload());
+        assertEquals("type-2-data", getPayload());
+        assertEquals("type-2.more-data", getPayload());
         assertEquals("type-3-data", getPayload());
 
         assertNull(testChannel.receive(0));

@@ -1,6 +1,5 @@
 package com.example.springintegration.integration;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -8,8 +7,11 @@ import java.util.Arrays;
 
 @Component
 public class SiClient {
-    @Autowired
-    private SiGateway siGateway;
+    private final SiGateway siGateway;
+
+    public SiClient(SiGateway siGateway) {
+        this.siGateway = siGateway;
+    }
 
     @Scheduled(cron = "0 0/3 * * * ?")
     public void invokeSiGateway() {

@@ -21,7 +21,11 @@
     <int:channel id="outCh"/>
     <int:channel id="filterEmptyCh"/>
 
-    <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor"/>
+    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
+
+    <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor">
+        <constructor-arg name="objectMapper" ref="objectMapper"/>
+    </bean>
 
     <task:executor id="taskExecutor" pool-size="10" queue-capacity="10"/>
 
@@ -43,11 +47,11 @@
 
     <int:service-activator id="processMessage" input-channel="receiveCh" output-channel="filterHasMoreCh" ref="messageProcessor"/>
 
-    <int:filter input-channel="filterHasMoreCh" output-channel="resequencerCh" expression="headers.discard.equals('false')"/>
+    <int:filter input-channel="filterHasMoreCh" output-channel="resequencerCh" expression="headers.hasMore.equals('false')"/>
 
     <int:resequencer input-channel="resequencerCh" output-channel="filterEmptyCh" release-partial-sequences="true"/>
 
-    <int:filter input-channel="filterEmptyCh" output-channel="splitResCh" expression="headers.empty.equals('false')" />
+    <int:filter input-channel="filterEmptyCh" output-channel="splitResCh" expression="headers.isEmpty.equals('false')" />
 
     <int:splitter id="splitResponse" input-channel="splitResCh" output-channel="outCh"/>
 
