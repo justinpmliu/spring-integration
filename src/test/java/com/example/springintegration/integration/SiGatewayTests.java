@@ -1,7 +1,5 @@
 package com.example.springintegration.integration;
 
-import com.example.springintegration.common.Constants;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,9 +14,11 @@ import org.springframework.messaging.MessageHandler;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -49,12 +49,11 @@ public class SiGatewayTests {
 
         this.mockIntegrationContext.substituteMessageHandlerFor("getHttp", mockMessageHandler);
 
-        siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
+        siGateway.process(Arrays.asList("type-1", "type-2"));
 
         assertEquals("type-1-data", getPayload());
+        assertEquals("type-1.more-data", getPayload());
         assertEquals("type-2-data", getPayload());
-        assertEquals("type-2.more-data", getPayload());
-        assertEquals("type-3-data", getPayload());
 
         assertNull(testChannel.receive(0));
     }
@@ -69,38 +68,47 @@ public class SiGatewayTests {
     }
 
     private String reply(Message message) {
-        Map<String, String> result = new HashMap<>();
+        String json = "";
 
         String type = (String) message.getPayload();
 
-        switch (type) {
-            case "type-1":
-            case "type-2" + Constants.MORE:
-                result.put(Constants.HEADER_HAS_MORE, "false");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-
-                break;
-            case "type-2":
-                result.put(Constants.HEADER_HAS_MORE, "true");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-
-                break;
-
-            default:
-                result.put(Constants.HEADER_HAS_MORE, "false");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-
-                break;
-        }
-
-        String json = null;
         try {
-            json = objectMapper.writeValueAsString(result);
-        } catch (JsonProcessingException e) {
+            if (type.equals("type-1")) {
+                json = this.readFileAsString("/mock/type-1-data.json");
+            } else if (type.equals("type-1.more")) {
+                json = this.readFileAsString("/mock/type-1.more-data.json");
+            } else if (type.equals("type-2")) {
+                json = this.readFileAsString("/mock/type-2-data.json");
+            }
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         return json;
+    }
+
+    private String readFileAsString(String fileName) throws IOException {
+        String data = "";
+
+        try (InputStream in = this.getClass().getResourceAsStream(fileName)) {
+            data = this.convert(in);
+        }
+
+        return data;
+    }
+
+    private String convert(InputStream inputStream) throws IOException {
+
+        StringBuilder stringBuilder = new StringBuilder();
+        String line = null;
+
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(inputStream))) {
+            while ((line = bufferedReader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+        }
+
+        return stringBuilder.toString();
     }
 
 }
