@@ -1,18 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xmlns:int-http="http://www.springframework.org/schema/integration/http"
        xmlns:int-stream="http://www.springframework.org/schema/integration/stream"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd http://www.springframework.org/schema/integration/stream http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/integration/stream
+       http://www.springframework.org/schema/integration/stream/spring-integration-stream.xsd">
 
-    <int-http:outbound-gateway id="getHttp"
-                               request-channel="sendCh"
-                               url="http://localhost:8080/api/data?type={aType}"
-                               http-method="GET"
-                               reply-channel="receiveCh"
-                               expected-response-type="java.lang.String" >
-        <int-http:uri-variable name="aType" expression="headers.type"/>
-    </int-http:outbound-gateway>
 
     <int-stream:stdout-channel-adapter id="stdout" channel="outCh" append-newline="true"/>
 

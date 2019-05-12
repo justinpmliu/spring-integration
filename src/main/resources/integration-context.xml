@@ -3,8 +3,9 @@
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:int-http="http://www.springframework.org/schema/integration/http"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
+            http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
     <int:channel id="splitReqCh"/>
     <int:channel id="bridgeCh">
@@ -44,6 +45,15 @@
     <int:enricher id="enrichHeader" input-channel="headerEnricherCh" output-channel="sendCh">
         <int:header name="type" expression="payload"/>
     </int:enricher>
+
+    <int-http:outbound-gateway id="getHttp"
+                               request-channel="sendCh"
+                               url="http://localhost:8080/api/data?type={aType}"
+                               http-method="GET"
+                               reply-channel="receiveCh"
+                               expected-response-type="java.lang.String" >
+        <int-http:uri-variable name="aType" expression="headers.type"/>
+    </int-http:outbound-gateway>
 
     <int:service-activator id="processMessage" input-channel="receiveCh" output-channel="filterHasMoreCh" ref="messageProcessor"/>
 

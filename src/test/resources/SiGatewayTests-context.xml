@@ -12,10 +12,4 @@
 
     <int:bridge input-channel="outCh" output-channel="testChannel" />
 
-    <int:service-activator input-channel="sendCh" output-channel="receiveCh" ref="dataService"/>
-
-    <bean id="dataService" class="com.example.springintegration.service.DataService">
-        <constructor-arg name="objectMapper" ref="objectMapper"/>
-    </bean>
-
 </beans>
