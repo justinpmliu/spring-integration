@@ -21,7 +21,6 @@ public class DataController {
             @RequestHeader HttpHeaders headers)
             throws JsonProcessingException, InterruptedException {
 
-        System.out.println("type: " + type + ", headers: " + headers);
         return dataService.getData(type);
     }
 }

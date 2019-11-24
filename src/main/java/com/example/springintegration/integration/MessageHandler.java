@@ -3,13 +3,12 @@ package com.example.springintegration.integration;
 import com.example.springintegration.common.Constants;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,11 +16,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-public class MessageProcessor {
+@Component
+public class MessageHandler {
 
     private static final List<String> EMPTY_LIST = Collections.emptyList();
 
-    private final Logger logger = LoggerFactory.getLogger(MessageProcessor.class);
     private final TypeReference<Map<String, String>> typeRef = new TypeReference<Map<String, String>>() {};
 
     @Autowired
@@ -29,7 +28,7 @@ public class MessageProcessor {
 
     private final ObjectMapper objectMapper;
 
-    public MessageProcessor(ObjectMapper objectMapper) {
+    public MessageHandler(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -41,10 +40,6 @@ public class MessageProcessor {
         String type = (String) headers.get(Constants.HEADER_TYPE);
         String data = payload.get(Constants.DATA);
         String hasMore = payload.get(Constants.HEADER_HAS_MORE);
-
-        if (logger.isInfoEnabled()) {
-            logger.info(String.format("type: %s", type));
-        }
 
         MessageBuilder<String> builder1;
         MessageBuilder<List<String>> builder2;

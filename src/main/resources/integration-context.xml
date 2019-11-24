@@ -7,30 +7,16 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans
             http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd   http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd http://www.springframework.org/schema/integration/http http://www.springframework.org/schema/integration/http/spring-integration-http.xsd">
 
-    <int:channel id="splitReqCh"/>
     <int:channel id="bridgeCh">
-        <int:queue/>
+        <int:queue capacity="10"/>
     </int:channel>
-    <int:channel id="headerEnricherCh"/>
     <int:channel id="sendCh"/>
     <int:channel id="receiveCh">
         <int:queue capacity="10"/>
     </int:channel>
-    <int:channel id="filterHasMoreCh"/>
-    <int:channel id="resequencerCh"/>
-    <int:channel id="splitResCh"/>
     <int:channel id="outCh"/>
-    <int:channel id="filterEmptyCh"/>
-
-    <bean id="objectMapper" class="com.fasterxml.jackson.databind.ObjectMapper"/>
-
-    <bean id="messageProcessor" class="com.example.springintegration.integration.MessageProcessor">
-        <constructor-arg name="objectMapper" ref="objectMapper"/>
-    </bean>
 
     <task:executor id="taskExecutor" pool-size="10" queue-capacity="10"/>
-
-    <int:poller id="defaultPoller" default="true" max-messages-per-poll="5" fixed-rate="200"/>
 
     <int:gateway id="siGateway"
                  default-request-channel="splitReqCh"
@@ -55,15 +41,18 @@
         <int-http:uri-variable name="aType" expression="headers.type"/>
     </int-http:outbound-gateway>
 
-    <int:service-activator id="processMessage" input-channel="receiveCh" output-channel="filterHasMoreCh" ref="messageProcessor"/>
+    <int:service-activator id="handleMessage" input-channel="receiveCh" output-channel="resequencerCh" ref="messageHandler">
+        <int:poller max-messages-per-poll="1" fixed-rate="200"/>
+    </int:service-activator>
 
-    <int:filter input-channel="filterHasMoreCh" output-channel="resequencerCh" expression="headers.hasMore.equals('false')"/>
+    <int:chain id="resequencerChain" input-channel="resequencerCh" output-channel="outCh">
+        <int:filter expression="headers.hasMore.equals('false')"/>
+        <int:resequencer release-partial-sequences="true"/>
+        <int:filter expression="headers.isEmpty.equals('false')" />
+        <int:splitter/>
+    </int:chain>
 
-    <int:resequencer input-channel="resequencerCh" output-channel="filterEmptyCh" release-partial-sequences="true"/>
-
-    <int:filter input-channel="filterEmptyCh" output-channel="splitResCh" expression="headers.isEmpty.equals('false')" />
-
-    <int:splitter id="splitResponse" input-channel="splitResCh" output-channel="outCh"/>
-
+    <int:wire-tap channel="infoLogger" pattern="receiveCh"/>
+    <int:logging-channel-adapter id="infoLogger"/>
 
 </beans>
