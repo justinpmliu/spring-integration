@@ -22,20 +22,26 @@ public class DataService {
         Map<String, String> result = new HashMap<>();
 
         switch (type) {
+            case "type-1":
+                result.put(Constants.HEADER_HAS_MORE, "false");
+                result.put(Constants.DATA, "");
+                break;
             case "type-2":
                 result.put(Constants.HEADER_HAS_MORE, "true");
+                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
                 sleep(1);
                 break;
             case "type-2" + Constants.MORE:
                 result.put(Constants.HEADER_HAS_MORE, "false");
+                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
                 sleep(2);
                 break;
             default:
                 result.put(Constants.HEADER_HAS_MORE, "false");
+                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
                 break;
         }
 
-        result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
         return objectMapper.writeValueAsString(result);
     }
 

@@ -37,7 +37,7 @@ public class MessageHandler {
 
         Map<String, String> payload = objectMapper.readValue(message.getPayload(), typeRef);
 
-        String type = (String) headers.get(Constants.HEADER_TYPE);
+        String type = headers.get(Constants.HEADER_TYPE, String.class);
         String data = payload.get(Constants.DATA);
         String hasMore = payload.get(Constants.HEADER_HAS_MORE);
 
