@@ -1,6 +1,7 @@
 package com.example.springintegration.integration;
 
 import com.example.springintegration.common.Constants;
+import com.example.springintegration.exception.SiSystemException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,9 @@ public class MessageHandler {
 
             builder2 = MessageBuilder.withPayload(EMPTY_LIST);
             builder2.setHeader(Constants.HEADER_HAS_MORE, "true");
+
+            //test exception handling
+//            throw new SiSystemException("Test NullPointerException");
 
         } else {
             if (data.isEmpty()) {

@@ -52,7 +52,21 @@
         <int:splitter/>
     </int:chain>
 
+    <int:channel id="errorChannel">
+        <int:queue capacity="100"/>
+    </int:channel>
+
+    <int:exception-type-router input-channel="errorChannel" default-output-channel="errorLogger">
+        <int:poller fixed-rate="200" max-messages-per-poll="5"/>
+        <int:mapping exception-type="com.example.springintegration.exception.SiSystemException" channel="siExceptionHandlerChannel"/>
+    </int:exception-type-router>
+
+    <int:service-activator id="handleSiException" input-channel="siExceptionHandlerChannel" ref="siExceptionHandler"/>
+
+    <int:logging-channel-adapter id="errorLogger" level="ERROR" expression="payload"/>
+
     <int:wire-tap channel="infoLogger" pattern="receiveCh"/>
     <int:logging-channel-adapter id="infoLogger"/>
+
 
 </beans>
