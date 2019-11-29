@@ -1,7 +1,10 @@
 package com.example.springintegration.integration;
 
 import com.example.springintegration.common.Constants;
+import com.example.springintegration.exception.SiBusinessException;
 import com.example.springintegration.exception.SiSystemException;
+import com.example.springintegration.exception.business.SiValidationException;
+import com.example.springintegration.exception.system.SiConversionException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +36,7 @@ public class MessageHandler {
         this.objectMapper = objectMapper;
     }
 
-    public Message<List<String>> process(Message<String> message) throws IOException {
+    public Message<List<String>> process(Message<String> message) throws IOException, SiBusinessException {
         MessageHeaders headers = message.getHeaders();
 
         Map<String, String> payload = objectMapper.readValue(message.getPayload(), typeRef);
@@ -56,7 +59,10 @@ public class MessageHandler {
             builder2.setHeader(Constants.HEADER_HAS_MORE, "true");
 
             //test exception handling
-//            throw new SiSystemException("Test NullPointerException");
+//            throw new SiValidationException("Test SiValidationException");
+//            throw new SiBusinessException("Test SiBusinessException");
+//            throw new SiConversionException("Test SiConversionException");
+//            throw new SiSystemException("Test SiSystemException");
 
         } else {
             if (data.isEmpty()) {

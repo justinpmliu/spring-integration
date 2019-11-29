@@ -1,4 +1,4 @@
-package com.example.springintegration.errorhandler;
+package com.example.springintegration.errorhandler.business;
 
 import lombok.extern.log4j.Log4j2;
 import org.springframework.messaging.Message;
@@ -6,7 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @Log4j2
-public class SiExceptionHandler {
+public class SiValidationExceptionHandler {
 
     public void handle(Message<Throwable> msg) {
         Throwable t = msg.getPayload();

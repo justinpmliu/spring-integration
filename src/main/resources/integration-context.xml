@@ -58,10 +58,14 @@
 
     <int:exception-type-router input-channel="errorChannel" default-output-channel="errorLogger">
         <int:poller fixed-rate="200" max-messages-per-poll="5"/>
-        <int:mapping exception-type="com.example.springintegration.exception.SiSystemException" channel="siExceptionHandlerChannel"/>
+        <int:mapping exception-type="com.example.springintegration.exception.business.SiValidationException" channel="siValidationExceptionChannel"/>
+        <int:mapping exception-type="com.example.springintegration.exception.SiBusinessException" channel="siBusinessExceptionChannel"/>
+        <int:mapping exception-type="com.example.springintegration.exception.SiSystemException" channel="siSystemExceptionChannel"/>
     </int:exception-type-router>
 
-    <int:service-activator id="handleSiException" input-channel="siExceptionHandlerChannel" ref="siExceptionHandler"/>
+    <int:service-activator id="handleSiValidationException" input-channel="siValidationExceptionChannel" ref="siValidationExceptionHandler"/>
+    <int:service-activator id="handleSiBusinessException" input-channel="siBusinessExceptionChannel" ref="siBusinessExceptionHandler"/>
+    <int:service-activator id="handleSiSystemException" input-channel="siSystemExceptionChannel" ref="siSystemExceptionHandler"/>
 
     <int:logging-channel-adapter id="errorLogger" level="ERROR" expression="payload"/>
 
