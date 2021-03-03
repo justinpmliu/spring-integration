@@ -3,7 +3,9 @@ package com.example.springintegration.integration;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @Component
 public class SiClient {
@@ -13,8 +15,18 @@ public class SiClient {
         this.siGateway = siGateway;
     }
 
-    @Scheduled(cron = "0 0/3 * * * ?")
+//    @Scheduled(cron = "0 0/3 * * * ?")
     public void invokeSiGateway() {
-        siGateway.process(Arrays.asList("type-1", "type-2", "type-3"));
+        this.sendMessage("group-1", 5);
+        this.sendMessage("group-2", 3);
+        this.sendMessage("group-3", 6);
+    }
+
+    private void sendMessage(String prefix, int num) {
+        List<String> messages = new ArrayList<>();
+        for (int i = 1; i <= num; i++) {
+            messages.add(prefix + "-" + i);
+        }
+        siGateway.process(messages);
     }
 }

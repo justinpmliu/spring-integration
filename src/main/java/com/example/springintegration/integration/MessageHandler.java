@@ -7,6 +7,7 @@ import com.example.springintegration.exception.business.SiValidationException;
 import com.example.springintegration.exception.system.SiConversionException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -21,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 
 @Component
+@Slf4j
 public class MessageHandler {
 
     private static final List<String> EMPTY_LIST = Collections.emptyList();
@@ -37,9 +39,11 @@ public class MessageHandler {
     }
 
     public Message<List<String>> process(Message<String> message) throws IOException, SiBusinessException {
+
         MessageHeaders headers = message.getHeaders();
 
         Map<String, String> payload = objectMapper.readValue(message.getPayload(), typeRef);
+        log.info("handling " + payload);
 
         String type = headers.get(Constants.HEADER_TYPE, String.class);
         String data = payload.get(Constants.DATA);

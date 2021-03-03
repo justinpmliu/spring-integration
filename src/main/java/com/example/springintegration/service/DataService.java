@@ -1,12 +1,14 @@
 package com.example.springintegration.service;
 
 import com.example.springintegration.common.Constants;
+import com.example.springintegration.util.SleepUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
 @Service
 public class DataService {
@@ -21,31 +23,17 @@ public class DataService {
 
         Map<String, String> result = new HashMap<>();
 
-        switch (type) {
-            case "type-1":
-                result.put(Constants.HEADER_HAS_MORE, "false");
-                result.put(Constants.DATA, "");
-                break;
-            case "type-2":
-                result.put(Constants.HEADER_HAS_MORE, "true");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-                sleep(1);
-                break;
-            case "type-2" + Constants.MORE:
-                result.put(Constants.HEADER_HAS_MORE, "false");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-                sleep(2);
-                break;
-            default:
-                result.put(Constants.HEADER_HAS_MORE, "false");
-                result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
-                break;
+        if ("type-2".equals(type)) {
+            result.put(Constants.HEADER_HAS_MORE, "true");
+        } else {
+            result.put(Constants.HEADER_HAS_MORE, "false");
         }
+
+        result.put(Constants.DATA, type + Constants.DATA_SUFFIX);
+        SleepUtils.randomSleep(5);
 
         return objectMapper.writeValueAsString(result);
     }
 
-    private void sleep(long second) throws InterruptedException {
-        Thread.sleep(second * 1000);
-    }
+
 }
