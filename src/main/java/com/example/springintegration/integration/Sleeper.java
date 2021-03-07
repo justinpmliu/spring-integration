@@ -9,9 +9,9 @@ import org.springframework.stereotype.Component;
 public class Sleeper {
 
     public String process(String message) throws InterruptedException {
-        log.info(message + " start sleeping");
-        SleepUtils.randomSleep(10);
-        log.info(message + " end sleeping");
+        log.info("[Sleeper] {} start sleeping", message);
+        SleepUtils.randomSleep(5);
+        log.info("[Sleeper] {} end sleeping", message);
 
         return message;
     }

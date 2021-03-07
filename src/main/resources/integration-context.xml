@@ -14,13 +14,15 @@
     <int:channel id="receiveCh">
         <int:queue capacity="100"/>
     </int:channel>
-    <int:channel id="sleepCh">
-<!--        <int:queue capacity="100"/>-->
+    <int:channel id="sleepCh"/>
+    <int:channel id="logCh">
+        <int:queue capacity="100"/>
     </int:channel>
     <int:channel id="outCh"/>
 
-    <task:executor id="pool1" pool-size="10"/>
-    <task:executor id="pool2" pool-size="10"/>
+    <task:executor id="pool1" pool-size="8"/>
+    <task:executor id="pool2" pool-size="20"/>
+    <task:executor id="pool3" pool-size="1"/>
 
     <int:gateway id="siGateway"
                  default-request-channel="splitReqCh"
@@ -29,7 +31,7 @@
     <int:splitter id="splitRequest" input-channel="splitReqCh" output-channel="bridgeCh"/>
 
     <int:bridge id="bridge" input-channel="bridgeCh" output-channel="headerEnricherCh">
-        <int:poller max-messages-per-poll="5" fixed-rate="1000" task-executor="pool1"/>
+        <int:poller fixed-rate="1000" task-executor="pool1"/>
     </int:bridge>
 
     <int:enricher id="enrichHeader" input-channel="headerEnricherCh" output-channel="sendCh">
@@ -46,7 +48,7 @@
     </int-http:outbound-gateway>
 
     <int:service-activator id="handleMessage" input-channel="receiveCh" output-channel="resequencerCh" ref="messageHandler">
-        <int:poller max-messages-per-poll="1" fixed-rate="200" task-executor="pool2"/>
+        <int:poller fixed-rate="200" task-executor="pool2"/>
     </int:service-activator>
 
     <int:chain id="resequencerChain" input-channel="resequencerCh" output-channel="sleepCh">
@@ -56,11 +58,11 @@
         <int:splitter/>
     </int:chain>
 
-    <int:service-activator id="sleeperActivator" input-channel="sleepCh" output-channel="logCh" ref="sleeper" >
-<!--        <int:poller max-messages-per-poll="1" fixed-rate="200" task-executor="pool2"/>-->
-    </int:service-activator>
+    <int:service-activator id="sleeperActivator" input-channel="sleepCh" output-channel="logCh" ref="sleeper"/>
 
-    <int:service-activator id="loggerActivator" input-channel="logCh" output-channel="outCh" ref="logger" />
+    <int:service-activator id="loggerActivator" input-channel="logCh" output-channel="outCh" ref="logger">
+        <int:poller max-messages-per-poll="1" fixed-rate="200" task-executor="pool3"/>
+    </int:service-activator>
 
     <int:channel id="errorChannel">
         <int:queue capacity="100"/>

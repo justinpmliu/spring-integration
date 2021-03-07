@@ -15,7 +15,7 @@ public class SiClient {
         this.siGateway = siGateway;
     }
 
-//    @Scheduled(cron = "0 0/3 * * * ?")
+//    @Scheduled(initialDelay = 90000L, fixedDelay = 90000L)
     public void invokeSiGateway() {
         this.sendMessage("group-1", 5);
         this.sendMessage("group-2", 3);
