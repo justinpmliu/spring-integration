@@ -19,13 +19,13 @@ public class LoggableAspect {
     public Object logMethodTiming(ProceedingJoinPoint proceedingJoinPoint) throws Throwable{
         long startTime = System.currentTimeMillis();
         Object returnValue = proceedingJoinPoint.proceed();
-        long totalTime = (System.currentTimeMillis() - startTime) / 1000;
+        long totalTime = System.currentTimeMillis() - startTime;
         StringBuilder message = new StringBuilder("Method: ");
         message.append(proceedingJoinPoint.getTarget().getClass().getName());
         message.append(".");
         message.append(proceedingJoinPoint.getSignature().getName());
         message.append(" | ");
-        message.append(totalTime).append("s");
+        message.append(totalTime / 1000.0).append(" seconds");
         log.info(message.toString());
         return returnValue;
     }
